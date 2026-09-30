@@ -29,10 +29,19 @@ FRIGHT_SECONDS = 3.0
 PLAYER_STEP, GHOST_STEP = 0.14, 0.17
 
 
+FRIGHTENED_TINTS = {
+    "blinky": (150, 30, 200),
+    "pinky":  (90, 90, 255),
+    "inky":   (20, 110, 170),
+    "clyde":  (60, 40, 150),
+}
+
+
 def ghost_color(name, mode):
     """Return an (r, g, b) colour override for a ghost, or None to keep the default."""
-    pass
-
+    if mode == "frightened":
+        return FRIGHTENED_TINTS.get(name)
+    return None
 
 def on_pellet_eaten(score, pellets_left):
     """Called after every pellet is eaten; add sound, flashes, or bonus fruit here."""
@@ -231,7 +240,8 @@ class Game:
             if self.fright_left > 0:
                 color = (240, 240, 240) if self.fright_left < 1 and int(self.fright_left * 6) % 2 else (40, 60, 230)
             mode = "eaten" if ghost.eaten else "frightened" if self.fright_left > 0 else "normal"
-            color = ghost_color(ghost.name, mode) or color
+            flashing = self.fright_left < 1 and int(self.fright_left * 6) % 2
+            color = (None if flashing else ghost_color(ghost.name, mode)) or color
             if ghost.eaten:
                 pygame.draw.circle(screen, (240, 240, 240), (gx - 4, gy), 3)
                 pygame.draw.circle(screen, (240, 240, 240), (gx + 4, gy), 3)
