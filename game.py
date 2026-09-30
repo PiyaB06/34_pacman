@@ -1,5 +1,7 @@
 import random
 import pygame
+import array
+import math
 
 TILE = 28
 MAZE = [
@@ -43,9 +45,40 @@ def ghost_color(name, mode):
         return FRIGHTENED_TINTS.get(name)
     return None
 
+_tone_cache = {}
+
+
+def _tone(freq, ms):
+    """Build (and cache) a short sine-wave Sound, or None if audio isn't available."""
+    key = (freq, ms)
+    if key in _tone_cache:
+        return _tone_cache[key]
+    sound = None
+    init = pygame.mixer.get_init()
+    if init and init[1] == -16:  # only handle signed 16-bit audio
+        rate, _, channels = init
+        count = int(rate * ms / 1000)
+        samples = array.array("h")
+        for i in range(count):
+            fade = 1 - i / count  # fade out to avoid clicks
+            value = int(6000 * fade * math.sin(2 * math.pi * freq * i / rate))
+            samples.extend([value] * channels)
+        sound = pygame.mixer.Sound(buffer=samples.tobytes())
+    _tone_cache[key] = sound
+    return sound
+
+
 def on_pellet_eaten(score, pellets_left):
     """Called after every pellet is eaten; add sound, flashes, or bonus fruit here."""
-    pass
+    if pellets_left == 0:
+        sound = _tone(880, 250)          # final pellet: higher, longer blip
+    else:
+        sound = _tone(440 if pellets_left % 2 else 520, 60)  # waka-waka
+    if sound:
+        try:
+            sound.play()
+        except pygame.error:
+            pass
 
 
 def bonus_life_threshold():
