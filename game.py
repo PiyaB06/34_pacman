@@ -39,6 +39,11 @@ FRIGHTENED_TINTS = {
 }
 
 
+BONUS_LIFE_EVERY = 1000
+def bonus_life_threshold():
+    """Return a score value at which the player earns an extra life, or None to disable bonus lives."""
+    return BONUS_LIFE_EVERY
+
 def ghost_color(name, mode):
     """Return an (r, g, b) colour override for a ghost, or None to keep the default."""
     if mode == "frightened":
